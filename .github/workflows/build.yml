@@ -52,11 +52,7 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Force Patch the vDSO sub-makefile to inject Clang integrated assembler configuration directly
-          sed -i 's/VDSO_AFLAGS :=/VDSO_AFLAGS := -fintegrated-as/g' arch/arm64/kernel/vdso/Makefile
-          sed -i 's/VDSO_CFLAGS :=/VDSO_CFLAGS := -fintegrated-as/g' arch/arm64/kernel/vdso/Makefile
-          
-          # Fixed toolchain arguments layout
+          # Hard-correcting toolchain variables to force complete cross-compilation across all sub-makefiles
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
@@ -64,6 +60,7 @@ jobs:
               HOSTCC=gcc \
               HOSTCFLAGS="-O2 -g -fcommon" \
               CLANG_TRIPLE=aarch64-linux-gnu- \
+              cc-name=clang \
               KCFLAGS="-w -fintegrated-as" \
               O=out
           )
