@@ -52,13 +52,14 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Compilation Arguments (Enforcing correct Host vs Target compiler segregation)
+          # Compilation Arguments (Adding KCFLAGS to suppress clutter warnings)
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
               CC=clang \
               HOSTCC=gcc \
               CLANG_TRIPLE=aarch64-linux-gnu- \
+              KCFLAGS="-w" \
               O=out
           )
           
