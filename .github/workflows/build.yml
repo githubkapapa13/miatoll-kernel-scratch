@@ -52,20 +52,21 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Hard-corrected compiler arguments to link cross-assemblers and legacy compatibility flags
+          # Hard-corrected toolchain layout linking explicit target cross-assemblers
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
               CC=clang \
+              AS=aarch64-linux-android-as \
+              LD=aarch64-linux-android-ld \
+              AR=aarch64-linux-android-ar \
+              NM=aarch64-linux-android-nm \
+              OBJCOPY=aarch64-linux-android-objcopy \
+              OBJDUMP=aarch64-linux-android-objdump \
+              STRIP=aarch64-linux-android-strip \
               HOSTCC=gcc \
-              CLANG_TRIPLE=aarch64-linux-gnu- \
-              LD=ld.lld \
-              AR=llvm-ar \
-              NM=llvm-nm \
-              OBJCOPY=llvm-objcopy \
-              OBJDUMP=llvm-objdump \
-              STRIP=llvm-strip \
               HOSTCFLAGS="-O2 -g -fcommon" \
+              CLANG_TRIPLE=aarch64-linux-gnu- \
               KCFLAGS="-w" \
               O=out
           )
