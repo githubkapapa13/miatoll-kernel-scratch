@@ -22,7 +22,7 @@ jobs:
       - name: Install Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc build-essential libssl-dev libcrypto++-dev bison flex libelf-dev cc lzop libncurses5-dev libncursesw5-dev libglib2.0-dev
+          sudo apt-get install -y bc build-essential libssl-dev libcrypto++-dev bison flex libelf-dev lzop libncurses5-dev libncursesw5-dev libglib2.0-dev
 
       - name: Fetch Raw Xiaomi Source
         run: |
