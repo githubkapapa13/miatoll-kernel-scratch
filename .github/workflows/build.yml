@@ -52,7 +52,11 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Enforcing LLVM Integrated Assembler to permanently bypass host /usr/bin/as calls
+          # Force Patch the vDSO sub-makefile to inject Clang integrated assembler configuration directly
+          sed -i 's/VDSO_AFLAGS :=/VDSO_AFLAGS := -fintegrated-as/g' arch/arm64/kernel/vdso/Makefile
+          sed -i 's/VDSO_CFLAGS :=/VDSO_CFLAGS := -fintegrated-as/g' arch/arm64/kernel/vdso/Makefile
+          
+          # Fixed toolchain arguments layout
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
