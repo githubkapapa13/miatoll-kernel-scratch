@@ -52,7 +52,7 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Hard-correcting toolchain variables to force complete cross-compilation across all sub-makefiles
+          # Force vDSO assignment parameters to track integrated tools
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
@@ -61,6 +61,7 @@ jobs:
               HOSTCFLAGS="-O2 -g -fcommon" \
               CLANG_TRIPLE=aarch64-linux-gnu- \
               cc-name=clang \
+              VDSO_CC=clang \
               KCFLAGS="-w -fintegrated-as" \
               O=out
           )
