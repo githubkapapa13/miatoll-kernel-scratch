@@ -61,8 +61,15 @@ jobs:
               O=out
           )
           
-          # Defconfig Initialization for AOSP Base (Using atoll_defconfig from image 1000005342.png)
+          # Defconfig Initialization for AOSP Base
           make vendor/atoll_defconfig "${MAKE_FLAGS[@]}"
+          
+          # Bypass Stack Protector Compiler Check Bug
+          ./scripts/config --file out/.config --disable CC_STACKPROTECTOR_STRONG
+          ./scripts/config --file out/.config --enable CC_STACKPROTECTOR_NONE
+          
+          # Re-sync modified configuration layout
+          make olddefconfig "${MAKE_FLAGS[@]}"
           
           # Fire Compilation
           echo "Executing make build..."
