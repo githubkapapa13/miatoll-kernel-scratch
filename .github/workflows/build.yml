@@ -52,13 +52,20 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Compilation Arguments (Adding KCFLAGS to suppress clutter warnings)
+          # Hard-corrected compiler arguments to link cross-assemblers and legacy compatibility flags
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
               CC=clang \
               HOSTCC=gcc \
               CLANG_TRIPLE=aarch64-linux-gnu- \
+              LD=ld.lld \
+              AR=llvm-ar \
+              NM=llvm-nm \
+              OBJCOPY=llvm-objcopy \
+              OBJDUMP=llvm-objdump \
+              STRIP=llvm-strip \
+              HOSTCFLAGS="-O2 -g -fcommon" \
               KCFLAGS="-w" \
               O=out
           )
