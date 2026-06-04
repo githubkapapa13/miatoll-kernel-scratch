@@ -52,22 +52,15 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Hard-corrected toolchain layout linking explicit target cross-assemblers
+          # Enforcing LLVM Integrated Assembler to permanently bypass host /usr/bin/as calls
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
               CC=clang \
-              AS=aarch64-linux-android-as \
-              LD=aarch64-linux-android-ld \
-              AR=aarch64-linux-android-ar \
-              NM=aarch64-linux-android-nm \
-              OBJCOPY=aarch64-linux-android-objcopy \
-              OBJDUMP=aarch64-linux-android-objdump \
-              STRIP=aarch64-linux-android-strip \
               HOSTCC=gcc \
               HOSTCFLAGS="-O2 -g -fcommon" \
               CLANG_TRIPLE=aarch64-linux-gnu- \
-              KCFLAGS="-w" \
+              KCFLAGS="-w -fintegrated-as" \
               O=out
           )
           
