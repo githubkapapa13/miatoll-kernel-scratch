@@ -52,20 +52,18 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Hard Symlink Override: Forces isolated sub-makefiles to hit cross-compilers by default
-          ln -sf $GCC64_DIR/bin/aarch64-linux-android-as $CLANG_DIR/bin/as
-          ln -sf $GCC64_DIR/bin/aarch64-linux-android-ld $CLANG_DIR/bin/ld
-          ln -sf $GCC64_DIR/bin/aarch64-linux-android-ar $CLANG_DIR/bin/ar
-          ln -sf $GCC64_DIR/bin/aarch64-linux-android-nm $CLANG_DIR/bin/nm
-          ln -sf $GCC64_DIR/bin/aarch64-linux-android-objcopy $CLANG_DIR/bin/objcopy
-          ln -sf $GCC64_DIR/bin/aarch64-linux-android-objdump $CLANG_DIR/bin/objdump
-          ln -sf $GCC64_DIR/bin/aarch64-linux-android-strip $CLANG_DIR/bin/strip
-          
-          # Stable global tracking matrix arguments
+          # Hard-corrected explicit compilation layout tracking variables across all sub-makefiles
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
               CC=clang \
+              AS=aarch64-linux-android-as \
+              LD=aarch64-linux-android-ld \
+              AR=aarch64-linux-android-ar \
+              NM=aarch64-linux-android-nm \
+              OBJCOPY=aarch64-linux-android-objcopy \
+              OBJDUMP=aarch64-linux-android-objdump \
+              STRIP=aarch64-linux-android-strip \
               HOSTCC=gcc \
               HOSTCFLAGS="-O2 -g -fcommon" \
               CLANG_TRIPLE=aarch64-linux-gnu- \
