@@ -53,15 +53,14 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Force Patch the core Makefiles to stop falling back to /usr/bin/as
-          find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/$(CROSS_COMPILE)as/clang -fintegrated-as/g' 2>/dev/null || true
+          # Universal Binary Hook: Overwriting target folder layout commands to catch rogue fallback makefiles
+          cp $GCC64_DIR/bin/aarch64-linux-android-as $CLANG_DIR/bin/as
+          cp $GCC64_DIR/bin/aarch64-linux-android-ld $CLANG_DIR/bin/ld
+          cp $GCC64_DIR/bin/aarch64-linux-android-ar $CLANG_DIR/bin/ar
+          cp $GCC64_DIR/bin/aarch64-linux-android-objcopy $CLANG_DIR/bin/objcopy
           
-          # Hard-force the rogue vDSO sub-makefile variables to use our integrated compilers
-          if [ -f "arch/arm64/kernel/vdso/Makefile" ]; then
-              echo "Patching vDSO sub-makefile tools layout..."
-              sed -i 's/CC) (targets/CC) -fintegrated-as (targets/g' arch/arm64/kernel/vdso/Makefile 2>/dev/null || true
-              echo "VDSO_LDFLAGS += -fuse-ld=lld" >> arch/arm64/kernel/vdso/Makefile
-          fi
+          # Global search-and-replace sweep fallback
+          find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/$(CROSS_COMPILE)as/as/g' 2>/dev/null || true
           
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
@@ -71,7 +70,7 @@ jobs:
               HOSTCFLAGS="-O2 -g -fcommon" \
               CLANG_TRIPLE=aarch64-linux-gnu- \
               cc-name=clang \
-              KCFLAGS="-w -fintegrated-as" \
+              KCFLAGS="-w" \
               O=out
           )
           
