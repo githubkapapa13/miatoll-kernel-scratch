@@ -45,21 +45,27 @@ jobs:
           cd kernel-source
           
           TOOLCHAIN_DIR=$GITHUB_WORKSPACE/tc
-          CLANG_DIR=$TOOLCHAIN_DIR/clang/clang-r383912c
           GCC64_DIR=$TOOLCHAIN_DIR/gcc64
           GCC32_DIR=$TOOLCHAIN_DIR/gcc32
           
+          # Dynamically capture wherever Clang's bin directory is located
+          CLANG_BIN_DIR=$(find $TOOLCHAIN_DIR/clang -type d -name "bin" | head -n 1)
+          
+          # Create an isolated override path inside the workspace root
+          mkdir -p $GITHUB_WORKSPACE/override_bin
+          
+          # Copy cross-compiler binaries to our override bin using generic names
+          cp $GCC64_DIR/bin/aarch64-linux-android-as $GITHUB_WORKSPACE/override_bin/as
+          cp $GCC64_DIR/bin/aarch64-linux-android-ld $GITHUB_WORKSPACE/override_bin/ld
+          cp $GCC64_DIR/bin/aarch64-linux-android-ar $GITHUB_WORKSPACE/override_bin/ar
+          cp $GCC64_DIR/bin/aarch64-linux-android-objcopy $GITHUB_WORKSPACE/override_bin/objcopy
+          
+          # Export ARCH variables and put our override bin at the absolute front of PATH
           export ARCH=arm64
           export SUBARCH=arm64
-          export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
+          export PATH=$GITHUB_WORKSPACE/override_bin:$CLANG_BIN_DIR:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Universal Binary Hook: Overwriting target folder layout commands to catch rogue fallback makefiles
-          cp $GCC64_DIR/bin/aarch64-linux-android-as $CLANG_DIR/bin/as
-          cp $GCC64_DIR/bin/aarch64-linux-android-ld $CLANG_DIR/bin/ld
-          cp $GCC64_DIR/bin/aarch64-linux-android-ar $CLANG_DIR/bin/ar
-          cp $GCC64_DIR/bin/aarch64-linux-android-objcopy $CLANG_DIR/bin/objcopy
-          
-          # Global search-and-replace sweep fallback
+          # Global search-and-replace cleanup filter to force sub-makefiles to evaluate naked 'as'
           find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/$(CROSS_COMPILE)as/as/g' 2>/dev/null || true
           
           MAKE_FLAGS=(
