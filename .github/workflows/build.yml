@@ -53,21 +53,18 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Hard-corrected anchors explicitly overriding compiler and structural assembler variables
+          # Force Patch the core Makefiles to stop falling back to /usr/bin/as
+          find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/$(CROSS_COMPILE)as/clang -fintegrated-as/g' 2>/dev/null || true
+          
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
               CC=clang \
-              AS=aarch64-linux-android-as \
-              LD=aarch64-linux-android-ld \
-              LLVM=1 \
-              LLVM_AS=aarch64-linux-android-as \
-              CLANG_PREFIX=aarch64-linux-android- \
               HOSTCC=gcc \
               HOSTCFLAGS="-O2 -g -fcommon" \
               CLANG_TRIPLE=aarch64-linux-gnu- \
               cc-name=clang \
-              KCFLAGS="-w" \
+              KCFLAGS="-w -fintegrated-as" \
               O=out
           )
           
