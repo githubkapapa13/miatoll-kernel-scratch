@@ -1,7 +1,7 @@
 name: Forge Miatoll Kernel Q
 
 on:
-  workflow_dispatch: # Allows you to manually trigger the build from your phone
+  workflow_dispatch:
 
 jobs:
   forge:
@@ -9,15 +9,11 @@ jobs:
     steps:
       - name: Free Runner Disk Space
         run: |
-          echo "==> Before cleanup:"
-          df -h
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/share/boost
           sudo rm -rf /usr/share/swift
-          echo "==> After cleanup:"
-          df -h
 
       - name: Install Build Dependencies
         run: |
@@ -32,17 +28,22 @@ jobs:
         run: |
           mkdir tc
           cd tc
-          # Android 11 Clang base (Stablest for 4.14 Q builds)
           git clone https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86 -b android-11.0.0_r42 --depth=1 clang
-          # Legacy cross-compilers
           git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9 -b android-10.0.0_r47 --depth=1 gcc64
           git clone https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9 -b android-10.0.0_r47 --depth=1 gcc32
+
+      - name: CCache / Build Storage Optimization
+        uses: actions/cache@v4
+        with:
+          path: kernel-source/out
+          key: miatoll-kernel-out-cache-${{ github.run_id }}
+          restore-keys: |
+            miatoll-kernel-out-cache-
 
       - name: Execute Kernel Compilation
         run: |
           cd kernel-source
           
-          # Environment Paths Setup
           TOOLCHAIN_DIR=$GITHUB_WORKSPACE/tc
           CLANG_DIR=$TOOLCHAIN_DIR/clang/clang-r383912c
           GCC64_DIR=$TOOLCHAIN_DIR/gcc64
@@ -52,13 +53,16 @@ jobs:
           export SUBARCH=arm64
           export PATH=$CLANG_DIR/bin:$GCC64_DIR/bin:$GCC32_DIR/bin:$PATH
           
-          # Enforcing LLVM suite isolation variables to halt fallback routing bugs
+          # Hard-corrected anchors explicitly overriding compiler and structural assembler variables
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
               CC=clang \
+              AS=aarch64-linux-android-as \
+              LD=aarch64-linux-android-ld \
               LLVM=1 \
-              LLVM_IAS=1 \
+              LLVM_AS=aarch64-linux-android-as \
+              CLANG_PREFIX=aarch64-linux-android- \
               HOSTCC=gcc \
               HOSTCFLAGS="-O2 -g -fcommon" \
               CLANG_TRIPLE=aarch64-linux-gnu- \
@@ -67,17 +71,14 @@ jobs:
               O=out
           )
           
-          # Defconfig Initialization for AOSP Base
-          make vendor/atoll_defconfig "${MAKE_FLAGS[@]}"
+          # Initialize baseline parameters if persistent environment storage is empty
+          if [ ! -f "out/.config" ]; then
+              make vendor/atoll_defconfig "${MAKE_FLAGS[@]}"
+              ./scripts/config --file out/.config --disable CC_STACKPROTECTOR_STRONG
+              ./scripts/config --file out/.config --enable CC_STACKPROTECTOR_NONE
+              make olddefconfig "${MAKE_FLAGS[@]}"
+          fi
           
-          # Bypass Stack Protector Compiler Check Bug
-          ./scripts/config --file out/.config --disable CC_STACKPROTECTOR_STRONG
-          ./scripts/config --file out/.config --enable CC_STACKPROTECTOR_NONE
-          
-          # Re-sync modified configuration layout
-          make olddefconfig "${MAKE_FLAGS[@]}"
-          
-          # Fire Compilation
           echo "Executing make build..."
           make -j$(nproc --all) "${MAKE_FLAGS[@]}"
 
