@@ -56,6 +56,13 @@ jobs:
           # Force Patch the core Makefiles to stop falling back to /usr/bin/as
           find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/$(CROSS_COMPILE)as/clang -fintegrated-as/g' 2>/dev/null || true
           
+          # Hard-force the rogue vDSO sub-makefile variables to use our integrated compilers
+          if [ -f "arch/arm64/kernel/vdso/Makefile" ]; then
+              echo "Patching vDSO sub-makefile tools layout..."
+              sed -i 's/CC) (targets/CC) -fintegrated-as (targets/g' arch/arm64/kernel/vdso/Makefile 2>/dev/null || true
+              echo "VDSO_LDFLAGS += -fuse-ld=lld" >> arch/arm64/kernel/vdso/Makefile
+          fi
+          
           MAKE_FLAGS=(
               CROSS_COMPILE=aarch64-linux-android- \
               CROSS_COMPILE_ARM32=arm-linux-androideabi- \
